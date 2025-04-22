@@ -115,6 +115,7 @@ class ImageCacheController extends BaseController
         }
     }
 
+
     /**
      * Returns full image path from given filename
      *
@@ -125,25 +126,31 @@ class ImageCacheController extends BaseController
     {
         // find file
         $finder = new Finder;
-
+        $resultFilename = '';
         foreach (config('imagecache.paths') as $path) {
+            $fullFilename = $path . DIRECTORY_SEPARATOR . $filename;
+            if(is_file($fullFilename)){
+                $resultFilename = $fullFilename;
+                break;
+            }
             if (!is_dir($path)) {
                 continue;
             }
             $finder->in($path);
         }
+        if(!empty($resultFilename)){
+            return $resultFilename;
+        } else {
+            $finder->files()->name($filename);
 
-        $finder->files()->name($filename);
+            $files = iterator_to_array($finder->getIterator());
 
-        $files = iterator_to_array($finder->getIterator());
-
-        if (count($files)) {
-            return array_keys($files)[0];
+            if (count($files)) {
+                return array_keys($files)[0];
+            }
         }
-
         // file not found
         abort(404);
-
     }
 
     /**
